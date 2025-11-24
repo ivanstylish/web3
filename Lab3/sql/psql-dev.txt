@@ -1,0 +1,1 @@
+PGPASSWORD=R3JIQIhNsdM2QGJv psql -h localhost -p 5432 -U s407959 -d web3

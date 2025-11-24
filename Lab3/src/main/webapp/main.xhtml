@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:c="http://java.sun.com/jsp/jstl/core">
+
+<h:head>
+    <title>Lab3 - Coordinate Check</title>
+    <h:outputStylesheet library="css" name="style.css"/>
+</h:head>
+<h:body>
+    <div class="page-container">
+        <div class="header">
+            <h1>ЛАБОРАТОРНАЯ РАБОТА #3</h1>
+            <div>ФИО: Чжун Цзяцзюнь &#160; Группа: P3210 &#160; Вариант: 6599</div>
+        </div>
+
+        <div style="display: flex; gap: 30px; margin-top: 20px;">
+
+            <div class="card" style="flex: 1;">
+                <h2>PARAM INPUT</h2>
+                <h:form id="pointForm">
+
+                    <!-- X -->
+                    <div class="form-row">
+                        <div class="form-label">X Coordinate:</div>
+
+                        <h:panelGroup id="xContainer" layout="block" styleClass="x-checkbox-wrapper">
+
+                            <h:selectManyCheckbox id="xInput"
+                                                  value="#{PointBean.selectedXValues}"
+                                                  layout="lineDirection"
+                                                  required="true"
+                                                  requiredMessage="Select at least one X"
+                                                  styleClass="custom-checkbox-table">
+                                <f:selectItem itemValue="-2.0" itemLabel="-2" />
+                                <f:selectItem itemValue="-1.5" itemLabel="-1.5" />
+                                <f:selectItem itemValue="-1.0" itemLabel="-1" />
+                                <f:selectItem itemValue="-0.5" itemLabel="-0.5" />
+                                <f:selectItem itemValue="0.0" itemLabel="0" />
+                                <f:selectItem itemValue="0.5" itemLabel="0.5" />
+                                <f:selectItem itemValue="1.0" itemLabel="1" />
+                                <f:selectItem itemValue="1.5" itemLabel="1.5" />
+                                <f:selectItem itemValue="2.0" itemLabel="2" />
+                            </h:selectManyCheckbox>
+                            <h:message for="xInput" styleClass="error-message" style="color:red; margin-top: 10px; display:block;"/>
+                        </h:panelGroup>
+                    </div>
+                    <!-- Y -->
+                    <div class="form-row">
+                        <div class="form-label">Y Coordinate:</div>
+
+                        <h:panelGroup id="yContainer">
+                            <h:inputText id="yInput"
+                                         value="#{PointBean.y}"
+                                         styleClass="text-input"
+                                         required="true"
+                                         requiredMessage="Please enter Y coordinate"
+                                         validatorMessage="Y range: [-3, 3]"
+                                         converterMessage="Y must be a number">
+                                <f:validateDoubleRange minimum="-3" maximum="3" />
+                            </h:inputText>
+
+                            <h:message for="yInput" styleClass="error-message" style="color:red; display:block; margin-top:5px;"/>
+
+                            <span class="hint">Range: [-3, 3]</span>
+                        </h:panelGroup>
+                    </div>
+
+                    <!-- R -->
+                    <div class="form-row">
+                        <div class="form-label">R radius:</div>
+                        <div style="display:flex; align-items:center;">
+                            <input type="range" id="rSlider"
+                                   min="1" max="4" step="0.5"
+                                   value="#{PointBean.r}"
+                                   oninput="updateR(this.value)" style="flex:1;"/>
+                            <span class="slider-value" id="rDisplay">#{PointBean.r}</span>
+                        </div>
+                        <h:inputHidden id="rValue" value="#{PointBean.r}"/>
+                        <h:message for="rValue" styleClass="error-message"/>
+                    </div>
+
+                    <h:inputHidden id="hiddenX" />
+                    <h:inputHidden id="hiddenY" />
+
+                    <div class="button-group">
+                        <h:commandButton value="CHECK POINT"
+                                         action="#{PointBean.checkPoint}"
+                                         styleClass="btn-primary"
+                                         onclick="return prepareSubmit(false)">
+                            <f:ajax execute="@form" render="xContainer yContainer areaCanvas historyTable"
+                                    onevent="handleAjaxEvent"/>
+                        </h:commandButton>
+
+                        <h:commandButton id="canvasBtn" action="#{PointBean.checkPoint}" style="display:none" immediate="true">
+                            <f:ajax execute="@this" render="historyTable areaCanvas" onevent="handleAjaxEvent"/>
+                        </h:commandButton>
+                    </div>
+                </h:form>
+            </div>
+
+            <div class="card" style="flex: 1; text-align: center">
+                <h2>COORDINATE AREA</h2>
+                <canvas id="areaCanvas" width="400" height="400" style="cursor:crosshair;"></canvas>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 30px;">
+            <h2>HISTORY RESULT</h2>
+
+            <div class="history-container">
+                <h:panelGroup id="historyTable">
+                    <table class="result-table">
+                        <thead>
+                        <tr>
+                            <th>TIME</th>
+                            <th>X</th>
+                            <th>Y</th>
+                            <th>R</th>
+                            <th>HIT</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <ui:repeat value="#{ResultBean.results}" var="res">
+                            <tr class="#{res.hit ? 'row-hit' : 'row-miss'}">
+                                <td>#{res.timestamp}</td>
+                                <td>#{res.x}</td>
+                                <td>#{res.y}</td>
+                                <td>#{res.r}</td>
+                                <td style="font-weight: bold;">
+                                    <h:outputText value="YES"
+                                                  rendered="#{res.hit}"
+                                                  style="color: #4CAF50;" />
+
+                                    <h:outputText value="NO"
+                                                  rendered="#{not res.hit}"
+                                                  style="color: #F44336;" />
+                                </td>
+                            </tr>
+                        </ui:repeat>
+                        <ui:fragment rendered="#{empty ResultBean.results}">
+                            <tr>
+                                <td colspan="5" class="empty-message">
+                                    No results yet. Enter coordinates and click CHECK POINT.
+                                </td>
+                            </tr>
+                        </ui:fragment>
+                        </tbody>
+                    </table>
+                </h:panelGroup>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button type="button" class="btn-danger" onclick="showModal()">CLEAR RESULTS</button>
+            </div>
+
+            <h:form style="display:none;">
+                <h:commandButton id="realClearBtn" action="#{ResultBean.clear}">
+                    <f:ajax render="historyTable" onevent="handleClearEvent"/>
+                </h:commandButton>
+            </h:form>
+        </div>
+
+        <div id="customModal" class="modal">
+            <div class="modal-content">
+                <h3>Confirmation</h3>
+                <p>Are you sure you want to clear all history?</p>
+                <div style="margin-top: 20px;">
+                    <button class="modal-btn btn-yes" onclick="confirmClear()">Yes, Clear</button>
+                    <button class="modal-btn btn-no" onclick="closeModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <h:link outcome="index" styleClass="btn-back" value="Back to Start Page"/>
+        </div>
+    </div>
+    <h:outputScript library="js" name="main.js" />
+</h:body>
+</html>
