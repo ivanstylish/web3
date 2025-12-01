@@ -78,7 +78,7 @@ public class PointBean implements Serializable {
         System.out.println("selectedXValues = " + selectedXValues);
 
         if (this.x != null && this.y != null) {
-            processSinglePoint(this.x);
+            processPoint(this.x, this.y, this.r, false);
             this.x = null;
             return null;
         }
@@ -106,30 +106,35 @@ public class PointBean implements Serializable {
             }
 
             if (xVal != null) {
-                processSinglePoint(xVal);
+                processPoint(xVal, this.y, this.r, true);
             }
         }
 
         return null;
     }
 
-    private void processSinglePoint(Double xVal) {
-        System.out.println("processSinglePoint: x=" + xVal + ", y=" + y + ", r=" + r);
+    private void processPoint(Double xVal, Double yVal, Double rVal, Boolean validation) {
+        System.out.println("processPoint: x=" + xVal + ", y=" + yVal + ", r=" + rVal);
 
-        if (validate(xVal, y, r)) {
-            boolean hit = areaCheckService.checkHit(xVal, y, r);
+        if (validate(xVal, yVal, rVal, validation)) {
+            boolean hit = areaCheckService.checkHit(xVal, yVal, rVal);
             System.out.println("Validation passed, hit = " + hit);
-            resultBean.addResult(xVal, y, r, hit);
+            resultBean.addResult(xVal, yVal, rVal, hit);
         } else {
             System.out.println("Validation failed!");
         }
     }
 
-    private boolean validate(Double curX, Double curY, Double curR) {
-        boolean isValid = curX != null && curY != null && curR != null
-                && curY >= -3 && curY <= 3;
-        System.out.println("Validation: x=" + curX + ", y=" + curY + ", r=" + curR + " -> " + isValid);
-        return isValid;
+    private boolean validate(Double curX, Double curY, Double curR, Boolean validation) {
+        if (curX == null || curY == null || curR == null) {
+            return false;
+        }
+
+        if (validation) {
+            return curY >= -3 && curY <= 3;
+        }
+
+        return true;
     }
 
     // Getters and Setters

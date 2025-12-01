@@ -1,8 +1,6 @@
 (function () {
     'use strict';
 
-    const validX = [-2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2];
-
     window.addEventListener('load', init);
 
     function init() {
@@ -56,7 +54,7 @@
             // 扇形
             ctx.beginPath();
             ctx.moveTo(cx, cy);
-            ctx.arc(cx, cy, (r / 2) * ppu, 0, Math.PI / 2, false); // 逆时针，从0到90度（数学第四象限）
+            ctx.arc(cx, cy, (r / 2) * ppu, 0, Math.PI / 2, false);
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
@@ -130,13 +128,13 @@
                 if(cells.length >= 5) {
                     const x = parseFloat(cells[1].innerText);
                     const y = parseFloat(cells[2].innerText);
-                    const pointR = parseFloat(cells[3].innerText); // 使用点自己的R值
+                    const pointR = parseFloat(cells[3].innerText);
                     const hitText = cells[4].querySelector('span') ? cells[4].querySelector('span').innerText : cells[4].innerText;
                     const hit = hitText.includes('YES');
 
                     if(!isNaN(x) && !isNaN(y) && !isNaN(pointR)) {
                         const currentR = getR();
-                        const scale = currentR / pointR; // 缩放比例
+                        const scale = currentR / pointR;
 
                         const displayX = x * scale;
                         const displayY = y * scale;
@@ -160,17 +158,11 @@
             const xRaw = (e.clientX - rect.left - cx) / ppu;
             const yRaw = (cy - (e.clientY - rect.top)) / ppu;
 
-            const xVal = validX.reduce((prev, curr) =>
-                Math.abs(curr - xRaw) < Math.abs(prev - xRaw) ? curr : prev
-            );
+            const xVal = parseFloat(xRaw.toFixed(2));
             const yVal = parseFloat(yRaw.toFixed(2));
 
             document.getElementById('pointForm:hiddenX').value = xVal;
             document.getElementById('pointForm:hiddenY').value = yVal;
-
-            const yInput = document.getElementById('pointForm:yInput');
-            if(yInput) yInput.value = yVal;
-
 
             const canvasBtn = document.getElementById('pointForm:canvasBtn');
             if (canvasBtn) {
@@ -182,31 +174,6 @@
             const existingError = document.getElementById('canvasClickError');
             if (existingError) {
                 existingError.remove();
-            }
-
-            if (yVal < -3 || yVal > 3) {
-                const errorMsg = document.createElement('span');
-                errorMsg.id = 'canvasClickError';
-                errorMsg.style.color = 'red';
-                errorMsg.style.font = 'Arial'
-                errorMsg.style.fontSize = '12px';
-                errorMsg.style.marginLeft = '10px';
-                errorMsg.textContent = 'Y coordinate out of range [-3, 3]';
-
-                if (yInput) {
-                    const formRow = yInput.closest('.form-row');
-                    if (formRow) {
-                        formRow.appendChild(errorMsg);
-                    }
-                }
-
-                setTimeout(() => {
-                    if (errorMsg.parentNode) {
-                        errorMsg.remove();
-                    }
-                }, 3000);
-
-                return;
             }
 
             document.getElementById('pointForm:hiddenX').value = xVal;
@@ -227,7 +194,6 @@ function updateR(val) {
 }
 
 function prepareSubmit(isCanvasClick) {
-    // 同步R
     const slider = document.getElementById('rSlider');
     if(slider) document.getElementById('pointForm:rValue').value = slider.value;
 
@@ -270,7 +236,7 @@ function confirmClear() {
 
 window.onclick = function(event) {
     const modal = document.getElementById('customModal');
-    if (event.target == modal) {
+    if (event.target === modal) {
         modal.style.display = "none";
     }
 }
